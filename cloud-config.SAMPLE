@@ -2,13 +2,6 @@
 
 hostname: hardcoreos
 
-write_files:
-  path: /etc/systemd/coredump.conf
-  content: | 
-     [Coredump]
-     Compress=yes
-     MaxUse=3G
-
 coreos:
   units:
     - name: etcd.service
