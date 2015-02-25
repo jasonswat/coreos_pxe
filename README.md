@@ -1,5 +1,7 @@
 # coreos_pxe
 
+My notes for automating coreos install on baremetal with pxe boot
+
 ### DHCP server setup
 
 I'm using a dd-wrt router with dhcp to release the ip address to the pxe boot process.
