@@ -36,7 +36,7 @@ Create the pxelinux.cfg/default menu
     sudo vi /tftpboot/pxelinux.cfg/default
 
 It should look like below, the coreos.autologin=tty1 boots to a root login for 
-troubleshooting. Your tty maybe differeent.:
+troubleshooting. Your tty maybe different.:
 
     default coreos
     prompt 1
