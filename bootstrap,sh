@@ -1,0 +1,3 @@
+#!/bin/bash
+curl -O http://192.168.10.184/MyWeb/software/cloud-config.yaml
+sudo coreos-install -d /dev/sda -c cloud-config.yaml coreos.autologin=tty1
