@@ -73,6 +73,7 @@ MENU TITLE Tools and Utilities
         MENU INCLUDE utilities/utilities.menu
 MENU END
 EOF
+  fi
   if [ ! -f /tftpboot/pxelinux.0 ]; then
     echo "PXE boot image doesn't exist, creating"
     sudo cp /usr/lib/syslinux/pxelinux.0 /tftpboot/
@@ -81,7 +82,7 @@ EOF
   fi
   sudo chmod -R 777 /tftpboot
 }
-# Ubuntu setup
+# Ubuntu menu setup
 function ubuntu_setup {
   if [ ! -f /tftpboot/ubuntu/ubuntu.menu ]; then
     sudo tee /tftpboot/ubuntu/ubuntu.menu <<EOF
@@ -90,7 +91,7 @@ LABEL 2
         KERNEL ubuntu/xenial/amd64/vmlinuz
         APPEND boot=xenial initrd=ubuntu/xenial/amd64/initrd.gz
 EOF
-    if [ ! -f /tftpboot/ubuntu/xenial/amd64/initrd.gz ] || [ ! -f /tftpboot/ubuntu/xenial/amd64/vmlinuz ]
+    if [ ! -f /tftpboot/ubuntu/xenial/amd64/initrd.gz ] || [ ! -f /tftpboot/ubuntu/xenial/amd64/vmlinuz ]; then
       echo "Downloading Ubuntu boot images"
       sudo mkdir -p /tftpboot/ubuntu/xenial/amd64
       cd /tftpboot/ubuntu/xenial/amd64
@@ -99,10 +100,10 @@ EOF
     fi 
   fi
 }
-# Create CoreOS config
+# CoreOS menu setup
 function coreos_setup {
   if [ ! -f /tftpboot/coreos/coreos_production_pxe.vmlinuz ] || [ ! -f /tftpboot/coreos/coreos_production_pxe_image.cpio.gz ]; then
-  echo "Downloading CoreOS boot files
+  echo "Downloading CoreOS boot files"
     cd /tftpboot/coreos
     wget http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz
     wget http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz
@@ -116,7 +117,7 @@ LABEL 1
 EOF
   fi
 }
-# create dban config if it doesn't exist
+# Dban menu setup 
 function dban_setup {
   if [ ! -f /tftpboot/DBAN/2.0.0/i386/dban.bzi ]; then
     echo "DBAN doesn't exist downloading DBAN iso"
@@ -138,5 +139,12 @@ LABEL 18
 EOF
   echo "DBAN setup complete"
   fi
+  rm ~/dban-2.3.0_i586.iso
 }
+# Main
+ubuntu_setup
+coreos_setup
+dban_setup
+default_setup
+
 sudo service tftpd-hpa restart
