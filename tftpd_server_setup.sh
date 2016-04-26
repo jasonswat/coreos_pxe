@@ -78,7 +78,7 @@ EOF
     echo "PXE boot image doesn't exist, creating"
     sudo cp /usr/lib/syslinux/pxelinux.0 /tftpboot/
     sudo cp /usr/lib/syslinux/vesamenu.c32 /tftpboot/
-    sudo cp /location/of/image/logo.png /tftpboot/pxelinux.cfg/ 
+    sudo wget https://raw.githubusercontent.com/jasonswat/coreos_pxe/master/logo.png -O /tftpboot/pxelinux.cfg/logo.png 
   fi
   sudo chmod -R 777 /tftpboot
 }
