@@ -11,8 +11,15 @@ I added these options to the DHCP server:
     siaddr 192.168.10.37
     option tftp 192.168.10.37 
 
-### TFTP server setup
+### Tftp Server setup script (new instructions)
 
+```
+wget https://raw.githubusercontent.com/jasonswat/coreos_pxe/master/tftpd_server_setup.sh
+chmod u+x tftpd_server_setup.sh   
+./tftpd_server_setup.sh 
+```
+
+### Tftp Server setup (old instructions)
 I had an ubuntu vm running on my network that I used for the tftp server
 
     sudo apt-get install tftpd-hpa inetutils-inetd
@@ -35,7 +42,7 @@ Create the pxelinux.cfg/default menu
 
     sudo vi /tftpboot/pxelinux.cfg/default
 
-It should look like below, the coreos.autologin=tty1 boots to a root login for 
+It should look like below, the coreos.autologin=tty1 boots to a root login for
 troubleshooting. Your tty maybe different.:
 
     default coreos
