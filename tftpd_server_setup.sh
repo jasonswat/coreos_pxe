@@ -1,18 +1,17 @@
 #!/bin/bash
-sudo apt-get install tftpd-hpa inetutils-inetd
-#sudo vi /etc/default/tftpd-hpa
-# it should look like this:
-
-# /etc/default/tftpd-hpa
-#
-#TFTP_USERNAME="tftp"
-#TFTP_DIRECTORY="/tftpboot"
-#TFTP_ADDRESS="0.0.0.0:69"
-#TFTP_OPTIONS="--secure"
+sudo apt-get install tftpd-hpa inetutils-inetd syslinux
 
 if [ ! -d /tftpboot/pxelinux.cfg/ ]; then
   sudo mkdir -p /tftpboot/pxelinux.cfg/
 fi
+function tftpd_config {
+  sudo tee /etc/default/tftpd-hpa <<EOF
+TFTP_USERNAME="tftp"
+TFTP_DIRECTORY="/tftpboot"
+TFTP_ADDRESS="0.0.0.0:69"
+TFTP_OPTIONS="--secure"
+EOF
+}
 function default_setup {
   if [ ! -f /tftpboot/pxelinux.cfg/pxe.conf ]; then
     sudo tee /tftpboot/pxelinux.cfg/pxe.conf <<EOF
@@ -30,7 +29,7 @@ EOF
   fi
   if [ ! -f /tftpboot/pxelinux.cfg/default ]; then
   sudo tee /tftpboot/pxelinux.cfg/default <<EOF
-DEFAULT vesamenu.c32 
+DEFAULT vesamenu.c32
 TIMEOUT 600
 ONTIMEOUT BootLocal
 PROMPT 0
@@ -84,17 +83,19 @@ EOF
 }
 # Ubuntu menu setup
 function ubuntu_setup {
-  if [ ! -f /tftpboot/ubuntu/ubuntu.menu ]; then
-    sudo tee /tftpboot/ubuntu/ubuntu.menu <<EOF
+  ubuntu_dir="/tftpboot/ubuntu"
+  ubuntu_latest_dir="${ubuntu_dir}/xenial/amd64"
+  if [ ! -f ${ubuntu_dir}/ubuntu.menu ]; then
+    sudo tee ${ubuntu_dir}/ubuntu.menu <<EOF
 LABEL 2
         MENU LABEL Ubuntu xenial (64-bit)
         KERNEL ubuntu/xenial/amd64/vmlinuz
         APPEND boot=xenial initrd=ubuntu/xenial/amd64/initrd.gz
 EOF
-    if [ ! -f /tftpboot/ubuntu/xenial/amd64/initrd.gz ] || [ ! -f /tftpboot/ubuntu/xenial/amd64/vmlinuz ]; then
+    if [ ! -f ${ubuntu_latest_dir}/initrd.gz ] || [ ! -f ${ubuntu_latest_dir}/vmlinuz ]; then
       echo "Downloading Ubuntu boot images"
-      sudo mkdir -p /tftpboot/ubuntu/xenial/amd64
-      cd /tftpboot/ubuntu/xenial/amd64
+      sudo mkdir -p ${ubuntu_latest_dir}
+      cd ${ubuntu_latest_dir}
       wget http://archive.ubuntu.com/ubuntu/dists/xenial/main/installer-amd64/current/images/cdrom/initrd.gz -O initrd.gz
       wget http://archive.ubuntu.com/ubuntu/dists/xenial/main/installer-amd64/current/images/cdrom/vmlinuz -O vmlinuz
     fi 
@@ -102,13 +103,15 @@ EOF
 }
 # CoreOS menu setup
 function coreos_setup {
-  if [ ! -f /tftpboot/coreos/coreos_production_pxe.vmlinuz ] || [ ! -f /tftpboot/coreos/coreos_production_pxe_image.cpio.gz ]; then
+  coreos_dir="/tftpboot/coreos"
+  if [ ! -f ${coreos_dir}/coreos_production_pxe.vmlinuz ] || [ ! -f /tftpboot/coreos/coreos_production_pxe_image.cpio.gz ]; then
   echo "Downloading CoreOS boot files"
-    cd /tftpboot/coreos
+    sudo mkdir ${coreos_dir}
+    cd ${coreos_dir}
     wget http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe.vmlinuz
     wget http://stable.release.core-os.net/amd64-usr/current/coreos_production_pxe_image.cpio.gz
   echo "Creating CoreOS menufile"
-  sudo tee /tftpboot/coreos/coreos.menu <<EOF
+  sudo tee ${coreos_dir}/coreos.menu <<EOF
 LABEL 1
         MENU LABEL CoreOS (64-bit)
         KERNEL coreos/coreos_production_pxe.vmlinuz
@@ -119,16 +122,18 @@ EOF
 }
 # Dban menu setup 
 function dban_setup {
-  if [ ! -f /tftpboot/DBAN/2.0.0/i386/dban.bzi ]; then
+  utilities_dir="/tftpboot/utilities"
+  dban_dir="${utilities_dir}/DBAN/2.0/i386/"
+  if [ ! -f ${dban_dir}/dban.bzi ]; then
     echo "DBAN doesn't exist downloading DBAN iso"
-    sudo mkdir -p /tftpboot/utilities/DBAN/2.0/i386
+    sudo mkdir -p ${dban_dir} /mnt/loop
     wget http://sourceforge.net/projects/dban/files/dban/dban-2.3.0/dban-2.3.0_i586.iso/download -O ~/dban-2.3.0_i586.iso
     echo "Mounting DBAN iso"
     sudo mount -o loop -t iso9660 ~/dban-2.3.0_i586.iso /mnt/loop
-    sudo cp /mnt/loop/isolinux/dban.bzi /tftpboot/DBAN/2.0.0/i386
+    sudo cp /mnt/loop/dban.bzi ${dban_dir}
     sudo umount /mnt/loop
-    sudo touch /tftpboot/utilities/utilities.menu
-    sudo tee /tftpboot/utilities/utilities.menu <<EOF
+    sudo touch ${utilties_dir}/utilities.menu
+    sudo tee ${utilties_dir}/utilities.menu <<EOF
 LABEL 18
         MENU LABEL DBAN Boot and Nuke
         KERNEL utilities/dban/dban.bzi
@@ -142,6 +147,7 @@ EOF
   rm ~/dban-2.3.0_i586.iso
 }
 # Main
+tftpd_config
 ubuntu_setup
 coreos_setup
 dban_setup
